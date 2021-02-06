@@ -1,5 +1,4 @@
 #include <iostream>
-#include <GLFW/glfw3.h>
 
 #include <memory>
 
@@ -312,15 +311,6 @@ int main()
   if(!glfwInit())
     return -1;
   
-  /*
-  GLFWwindow* window = glfwCreateWindow(RT_WIDTH,
-                                        RT_HEIGHT,
-                                        "Path tracing",
-                                        0,
-                                        0);
-
-  glfwMakeContextCurrent(window);
-  */
   auto material_ground = 
     std::make_shared<mat_lambertian_t>(
         color(0.25, 0.25, 0.25));
@@ -408,22 +398,6 @@ int main()
     }
   }
 
-  /*
-  while(1)
-  {
-    glClearColor(0.25f, 0.25f, 0.25f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glDrawPixels( RT_WIDTH,
-                  RT_HEIGHT,
-                  GL_RGB, 
-                  GL_UNSIGNED_BYTE,
-                  pixel_buffer );
-
-    glfwPollEvents();
-    glfwSwapBuffers(window);
-  }
-  */
 
 
   return 0;
