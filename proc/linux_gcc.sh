@@ -6,7 +6,7 @@ proj_name=path_tracing
 proj_root_dir=$(pwd)/../
 
 flags=(
-  -std=c++17 -Wall -lglfw -lGL -lX11 -pthread -lXi
+  -std=c++17 -Wall -pthread
 )
 
 inc=(

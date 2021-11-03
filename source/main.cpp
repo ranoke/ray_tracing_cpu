@@ -1,16 +1,17 @@
 #include <iostream>
 
 #include <memory>
+#include <thread>
 
 #include "utils.h"
 #include "vec3.h"
 
 
 const auto aspect_ratio = 16.0/9.0;
-const int image_width = 640;
+const int image_width = 2048;
 const int image_height = int(image_width/ aspect_ratio);
 
-uint8_t pixel_buffer[image_width][image_height][3];
+int pixel_buffer[image_width][image_height][3];
 
 const int samples_per_pixel = 100;
 const int depth = 40;
@@ -283,12 +284,11 @@ color ray_color(const ray_t& r,
 }
 
 
-
-void write_color( std::ostream& out,
-                  color pixel_color,
-                  int x,
-                  int y)
+void set_color(color pixel_color,
+                 int x,
+                 int y)
 {
+
   auto r = pixel_color.x();
   auto g = pixel_color.y();
   auto b = pixel_color.z();
@@ -297,10 +297,24 @@ void write_color( std::ostream& out,
   r = sqrt(scale * r);
   g = sqrt(scale * g);
   b = sqrt(scale * b);
+  
+  pixel_buffer[x][y][0] = static_cast<int>(256 * clamp(r, 0.0, 0.999));
+  pixel_buffer[x][y][1] = static_cast<int>(256 * clamp(g, 0.0, 0.999));
+  pixel_buffer[x][y][2] = static_cast<int>(256 * clamp(b, 0.0, 0.999));
+}
 
-  out << static_cast<int>(256 * clamp(r, 0.0, 0.999)) << ' '
-      << static_cast<int>(256 * clamp(g, 0.0, 0.999)) << ' '
-      << static_cast<int>(256 * clamp(b, 0.0, 0.999)) << '\n';
+void write_color(std::ostream& out)
+{
+
+  for(int y = image_height-1; y >= 0; --y)
+  {
+    for(int x = 0; x < image_width; ++x)
+    {
+      out << pixel_buffer[x][y][0] << ' '
+          << pixel_buffer[x][y][1] << ' '
+          << pixel_buffer[x][y][2] << '\n';
+    }
+  }
 }
 
 
@@ -308,9 +322,6 @@ void write_color( std::ostream& out,
 
 int main()
 {
-  if(!glfwInit())
-    return -1;
-  
   auto material_ground = 
     std::make_shared<mat_lambertian_t>(
         color(0.25, 0.25, 0.25));
@@ -379,6 +390,7 @@ int main()
       << ' ' << std::flush;
     for(int x = 0; x < image_width; ++x)
     {
+      std::thread t([pixel_buffer, x, y, &world, &origin, &vertical, &horizontal, &lower_left_corner](){
       color pixel_color(0,0,0);
       for(int s = 0; s < samples_per_pixel; s++)
       {
@@ -393,12 +405,14 @@ int main()
         pixel_color += ray_color(r, world, depth);
       }
 
-      write_color(std::cout, pixel_color, x, y);
-      
+      set_color(pixel_color, x, y);
+      }); 
+      t.detach();
     }
   }
 
 
+  write_color(std::cout);
 
   return 0;
 }
